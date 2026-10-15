@@ -8,5 +8,6 @@ Read README.md and docs/architecture.md before changing controller behaviour.
 - Snapshot before mutation. Never overwrite original settings with already-muted state.
 - Do not add runtime files, local device identifiers, paths or diagnostic output to Git.
 - Use plain descriptions. Mark roadmap ideas as proposals; do not present them as shipped features.
+- Keep documentation, commit messages and PR text brief and factual. No slogans, promotional copy or repeated explanations.
 - Keep controls keyboard-accessible and test real UI layout after visual changes.
 - Do not publish releases or push a remote unless the user asked for that action.

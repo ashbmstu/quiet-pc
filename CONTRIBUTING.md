@@ -1,24 +1,25 @@
 # Contributing
 
-Build on Windows x64:
+Windows x64; C# 5 and the bundled .NET Framework compiler. No SDK or NuGet dependencies.
 
 ```powershell
 .\scripts\build.ps1
 .\scripts\test.ps1
 ```
 
-The project uses C# syntax accepted by the .NET Framework compiler shipped with Windows. Keep it buildable without a separate SDK, network restore or NuGet dependency unless there is a clear reason to change that requirement.
+Tests use fake devices. `-Native` changes real audio and notifications; exit the tray app first.
 
-`scripts/test.ps1` uses fake audio and notification controls. It does not mute the PC. `-Native` also runs a live round trip and refuses to run while the tray controller is active. Use live tests deliberately on a desktop where a brief mute is acceptable.
+## Requirements
 
-For a UI change, check the real window, keyboard navigation, long labels and scaling. For a state change, test restoration and failure recovery, not just the happy path. Do not modify the current user's preferences as a test fixture.
+- Save original settings before mutation.
+- Preserve the snapshot when replacing a timer.
+- Respect manual audio changes.
+- Retain failed and disconnected-device restorations.
+- Report Windows errors.
+- Exclude local state, device IDs, paths and logs from Git.
+- Check UI layout, keyboard use and scaling after visual changes.
+- Test restoration and failure recovery after state changes.
 
-Keep these invariants:
+Issues: Windows build, app version, steps, expected and actual result. Remove private data from diagnostics.
 
-1. Save original settings before changing Windows.
-2. Never replace a session's original snapshot when extending or replacing a timer.
-3. Retain failed or disconnected-device restorations.
-4. Never report complete silence when a Windows operation failed.
-5. Keep machine-specific files, IDs, paths and logs out of Git.
-
-Write issues around a reproducible symptom: Windows build, app version, steps, expected result, actual result. Review diagnostic output before attaching it. Explain the change and how you checked it in a pull request; screenshots help for UI changes.
+Pull requests: state the change and validation. Add screenshots for UI changes. Keep documentation and commit messages short and factual.

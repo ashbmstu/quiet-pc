@@ -1,46 +1,40 @@
-# Visual design
+# Design
 
-Quiet PC uses a cool grey surface, soft raised buttons, and an indigo accent. Keep the windows small and the text sparse.
+Compact neumorphic windows. Short labels. Explanations in tooltips. Errors must remain specific.
 
-## Interface
+## Controls
 
-Use Segoe UI, 10 pt for controls and 18 pt for a settings heading. The timer can use a large countdown. Use short labels: **Save**, **Close**, **Start**, **Restore**. Explanations belong in tooltips and accessible descriptions. Errors still need enough detail to be useful.
+- Segoe UI: 10 pt controls, 34 pt countdown.
+- Native checkboxes, number inputs and menus.
+- `NeoButton`: raised surface, pressed inset, visible keyboard focus.
+- Minimum button height: 44 logical pixels, including shadow padding.
+- High contrast: native painting and system colours.
 
-`Brand.Canvas` is `#E8ECF2`; `Brand.Surface` is `#EBEEF4`. Text uses `#202332`, supporting text `#62697A`, and the accent `#5B4AD1`. Warning text uses `#A86600`. Do not use pale grey for important text.
+## Colours
 
-`NeoButton` inherits Windows Forms Button behavior. It paints opposing soft shadows for a raised surface and an inset gradient when pressed. `Brand.StylePrimary` gives it indigo text; `StyleSecondary` gives it normal text. Leave at least 44 logical pixels of height, including six pixels on each side for shadows. Keep a visible focus ring for keyboard users. High contrast uses native button painting and system colors.
+| Use | Hex |
+|---|---|
+| Canvas | `#E8ECF2` |
+| Surface | `#EBEEF4` |
+| Text | `#202332` |
+| Secondary text | `#62697A` |
+| Accent | `#5B4AD1` |
+| Warning | `#A86600` |
 
-Keep checkboxes, number inputs, and shortcut menus native. Decorative depth must not be the only sign that a control is interactive. Preserve keyboard activation, tab order, visible labels, and accessible names. Keep status feedback near the relevant controls.
+## Icons
 
-## Icon
-
-Retain the crescent moon and circular background. The icon uses both shape and color:
-
-| State | Shape | Color |
-| --- | --- | --- |
+| State | Shape | Colour |
+|---|---|---|
 | Off | Crossed moon | Slate |
-| Quiet | Crescent | Indigo |
-| Needs attention | Exclamation | Amber |
+| On | Crescent | Indigo |
+| Error | Exclamation | Amber |
 
-`Brand.CreateIcon` draws the runtime icons. Keep them flat: soft shadows are for window controls and would blur a tiny tray icon. A timer belongs in text, not a small badge over the moon. Keep enough contrast on both light and dark taskbars.
+`Brand.CreateIcon` draws runtime icons. Keep tray icons flat and legible on both taskbar themes. Show timer information in text.
 
-## Copy
+SVG assets: `logo`, `wordmark`, `banner`, `icon-states`. Original vectors; system fonts only.
 
-Use the name **Quiet PC**. Use `QuietPC` for code and executable names. Describe actual behavior: suppress Windows notifications, mute playback audio, restore previous settings. Avoid promises of complete silence; apps can draw their own alerts or bypass the Windows mixer.
+## Checks
 
-A timer restores the previous settings. It does not necessarily unmute a device. **No timer** leaves quiet mode active; explain that through its tooltip and accessible name. Successful expiry should not create another interruption.
+Check actual windows at 100%, 150% and 200% scaling: focus, keyboard activation, high contrast, errors and disabled controls. Offscreen renders may omit native combo-box text.
 
-## Assets
-
-- `logo.svg`: moon mark.
-- `wordmark.svg`: mark with the name.
-- `banner.svg`: repository header.
-- `icon-states.svg`: three states with labels.
-
-The vectors are original, with no external image or font dependency. SVG text uses the viewer's system font. Keep a quarter of the mark's width clear around it. Do not stretch or animate the icon.
-
-## Checks before release
-
-Inspect real windows at 100%, 150%, and 200% display scaling. Check mouse-down appearance, keyboard focus and activation, high contrast, long errors, and disabled actions. Inspect the tray icons at their actual size on both taskbar themes.
-
-Use screenshots of the real build. Crop to the relevant window or tray menu. Exclude usernames, device names, paths, logs, and unrelated windows. Offscreen previews can omit native combo-box text; verify the actual selected value separately.
+Screenshots should contain only the relevant app window. Exclude personal paths, device names and logs.
