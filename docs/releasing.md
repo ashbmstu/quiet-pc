@@ -21,6 +21,8 @@ Before pushing:
 6. Test install, update, and uninstall on a separate user profile or VM. Confirm startup preference and recovery state survive update.
 7. Review the archive contents and checksum. Publish only after the owner authorises a release.
 
+Release assets: the versioned Windows x64 ZIP and its `.sha256` file. The ZIP includes `Install.cmd`; users extract the archive and double-click it. Create a draft, upload and verify both assets, then publish.
+
 CI builds and runs deterministic tests on Windows. It does not test physical audio hardware, visual layout, or the internal notification interface on every supported Windows build. A workflow file in a local repository is not evidence of a passing GitHub run.
 
 Current local validation covers Windows 11 24H2 build 26100. Broader Windows, DPI and high-contrast validation remains release work. Describe this scope honestly in release notes.

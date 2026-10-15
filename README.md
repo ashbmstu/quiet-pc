@@ -1,6 +1,16 @@
 # Quiet PC
 
+[![Build](https://github.com/ashbmstu/quiet-pc/actions/workflows/ci.yml/badge.svg)](https://github.com/ashbmstu/quiet-pc/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/ashbmstu/quiet-pc)](https://github.com/ashbmstu/quiet-pc/releases/latest)
+[![MIT](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
+![Windows x64](https://img.shields.io/badge/platform-Windows%20x64-5B4AD1)
+
 Windows tray app. Mutes playback audio and suppresses notifications. Click again to restore previous settings.
+
+<p>
+  <img src="assets/screenshots/settings.jpg" width="300" alt="Settings: audio, notifications, tray icon, startup and shortcut">
+  <img src="assets/screenshots/timer.jpg" width="320" alt="Timer: 30 minutes, 1 hour or a custom duration">
+</p>
 
 - Timers: 30 minutes, 1 hour, or 1–10,080 minutes.
 - Manual unmute takes priority for the rest of the session.
@@ -11,6 +21,8 @@ Windows tray app. Mutes playback audio and suppresses notifications. Click again
 
 Windows x64, .NET Framework 4.x. Tested on Windows 11 24H2, build 26100.
 
+[Download the latest release](https://github.com/ashbmstu/quiet-pc/releases/latest). Extract the ZIP and double-click **Install.cmd**. The build is unsigned.
+
 From source:
 
 ```powershell
@@ -18,8 +30,6 @@ From source:
 .\scripts\test.ps1
 .\scripts\install.ps1
 ```
-
-From a release archive: extract it, then run `scripts/install.ps1`. Builds are unsigned unless stated otherwise.
 
 Installed files: `%LOCALAPPDATA%\Programs\QuietPC`. Preferences and recovery: `%LOCALAPPDATA%\QuietPC`.
 
