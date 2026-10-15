@@ -1,0 +1,19 @@
+name: Windows build and tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Build
+        shell: powershell
+        run: .\scripts\build.ps1
+      - name: Test recovery and timers
+        shell: powershell
+        run: .\scripts\test.ps1

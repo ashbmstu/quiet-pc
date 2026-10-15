@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 160" role="img" aria-labelledby="title desc">
+  <title id="title">Quiet PC tray states</title>
+  <desc id="desc">Off: crossed moon in slate. Quiet: moon in indigo. Attention: exclamation mark in amber.</desc>
+  <rect width="720" height="160" rx="12" fill="#E8ECF2"/>
+  <g transform="translate(88 24)">
+    <circle cx="32" cy="32" r="30" fill="#62697A"/>
+    <ellipse cx="33" cy="32" rx="19" ry="20" fill="#fff"/>
+    <ellipse cx="45" cy="25" rx="17" ry="19" fill="#62697A"/>
+    <path d="M14 52L52 14" stroke="#62697A" stroke-width="10"/>
+    <path d="M14 52L52 14" stroke="#fff" stroke-width="4.8" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(328 24)">
+    <circle cx="32" cy="32" r="30" fill="#5B4AD1"/>
+    <ellipse cx="33" cy="32" rx="19" ry="20" fill="#fff"/>
+    <ellipse cx="45" cy="25" rx="17" ry="19" fill="#5B4AD1"/>
+  </g>
+  <g transform="translate(568 24)">
+    <circle cx="32" cy="32" r="30" fill="#A86600"/>
+    <path d="M32 16V36" stroke="#fff" stroke-width="6.4" stroke-linecap="round"/>
+    <circle cx="32" cy="47.6" r="3.6" fill="#fff"/>
+  </g>
+  <g font-family="Segoe UI, system-ui, sans-serif" font-size="20" fill="#202332" text-anchor="middle">
+    <text x="120" y="128">Off</text><text x="360" y="128">Quiet</text><text x="600" y="128">Needs attention</text>
+  </g>
+</svg>

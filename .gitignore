@@ -1,0 +1,16 @@
+build/
+dist/
+.local/
+.vs/
+.idea/
+*.user
+*.suo
+*.log
+*.bak
+*.tmp
+state*.json
+settings.json
+diagnostics*.json
+native-test*.json
+Thumbs.db
+.DS_Store
