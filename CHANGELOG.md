@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.2 — 2026-10-15
+
+- Adopt manual unmute for the rest of the session instead of muting again. Preserve subsequent audio choices through timer expiry, reconnect and restart.
+- Show manual audio control in the tray, timer and command status.
+
 ## 1.2.1 — 2026-10-15
 
 - Tightened settings and timer spacing, removed the duplicate settings heading, and collapsed empty save feedback.

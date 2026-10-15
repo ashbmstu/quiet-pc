@@ -18,7 +18,9 @@ Quiet PC is a C# WinForms executable built against the .NET Framework included w
 
 Starting quiet mode reads the selected Windows settings, writes a durable snapshot, then changes the settings. State writes use a temporary file, flush it to disk, and atomically replace the previous file. Failure to save prevents the corresponding new mutation.
 
-The snapshot contains the original global notification setting, each captured device's mute state, the active session's audio option, and an optional UTC deadline. Preferences for future sessions are stored separately. Changing preferences while active does not change the snapshot.
+The snapshot contains the original global notification setting, each captured device's mute state, audio ownership, the active session's audio option, and an optional UTC deadline. Preferences for future sessions are stored separately. Changing preferences while active does not change the snapshot.
+
+Audio ownership is per output: an absent entry needs its first mute; `true` means Quiet PC has applied mute; `false` means an external unmute has released control. Once released, the app neither mutes nor restores that output during the session. A new session resets ownership. Ownership changes are persisted and retried after a write error, without reversing a manual unmute. An unmute observed during restoration is also respected. Older active snapshots without ownership entries are treated as already controlled.
 
 A new timer on an active session changes only its deadline. On every one-second refresh, expiry is checked before quiet settings are re-applied. An expired deadline calls the same restoration path as manual off. The timer runs on elapsed wall-clock time, so system-clock changes can affect it.
 
@@ -43,6 +45,7 @@ An optional `integration.json` can point to a local Markdown automation register
 ## Known edges
 
 - A newly connected endpoint can emit sound before its callback is handled.
+- External unmute is detected by the one-second reconciliation pass. An unmute followed by a remute entirely between passes may not be observed; Windows and other applications are treated alike.
 - The controller cannot act while Windows is off, asleep, or the process is stopped.
 - If a device is removed permanently while pending restoration, normal exit remains blocked. A future explicit “forget missing device” flow must explain the lost restoration state.
 - A failed endpoint enumeration currently prevents that pass from applying audio changes; the tray reports attention and later retries. Per-endpoint failure isolation is a planned improvement.

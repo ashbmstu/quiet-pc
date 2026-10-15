@@ -45,12 +45,13 @@ Control replies:
   "Ok": true,
   "Error": "",
   "Quiet": true,
+  "ManualAudioDevices": 0,
   "EndsAtUtc": "2026-01-01T12:30:00.0000000+00:00",
   "PendingAudioRestores": 0,
   "PendingNotificationRestore": false
 }
 ```
 
-`status` also includes `Running`, `Settings` and `Startup`. It reads the persisted state; it does not enforce an expired deadline or certify that hardware is silent. A saved active session with `Running: false` needs the controller to run before it can restore. Use `diagnose` when you need actual endpoint mute values.
+`ManualAudioDevices` counts outputs released to manual control during the active session. Quiet mode can remain active while these outputs play sound. `status` also includes `Running`, `Settings` and `Startup`. It reads the persisted state; it does not enforce an expired deadline or certify that hardware is silent. A saved active session with `Running: false` needs the controller to run before it can restore. Use `diagnose` when you need actual endpoint mute values.
 
 Commands are sent through a local named pipe restricted to the current Windows user, with a separate pipe per interactive session. There is no TCP port or web service. Replies describe application state, not message contents or audio content.

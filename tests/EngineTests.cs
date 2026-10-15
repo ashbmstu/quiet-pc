@@ -13,10 +13,11 @@ class Tests {
             new AudioDevice { Id = "speaker", Muted = false, Volume = .42f },
             new AudioDevice { Id = "headset", Muted = true, Volume = .19f }
         };
-        public bool FailRestore;
+        public bool FailRestore, FailMute;
         public List<AudioDevice> Read() { return Devices.Select(d => new AudioDevice { Id = d.Id, Muted = d.Muted, Volume = d.Volume }).ToList(); }
         public void SetMute(string id, bool mute) {
             if (!mute && FailRestore) throw new IOException("Test restoration error");
+            if (mute && FailMute) throw new IOException("Test mute error");
             Devices.Single(d => d.Id == id).Muted = mute;
         }
     }
@@ -156,6 +157,62 @@ class Tests {
                 var e = new QuietEngine(new FakeAudio(), new FakeNotifications(), new MemoryStore()); int rejected = 0;
                 foreach (var duration in new[] { TimeSpan.Zero, TimeSpan.FromDays(8) }) try { e.EnableFor(duration); } catch (ArgumentOutOfRangeException) { rejected++; }
                 Assert(rejected == 2 && !e.State.Active, "Invalid duration started quiet");
+            });
+            Case("Manual unmute is adopted without changing notifications or other outputs", delegate {
+                var a = new FakeAudio(); var n = new FakeNotifications(); var e = new QuietEngine(a, n, new MemoryStore());
+                e.Enable(); a.Devices[1].Muted = false; e.Refresh(); e.Refresh();
+                Assert(!a.Devices[1].Muted && a.Devices[0].Muted && n.Value == 0 && e.ManualAudioDevices == 1, "Manual unmute was overridden");
+                e.Disable(); Assert(!a.Devices[1].Muted && n.Value == 1, "Restoration undid manual choice");
+            });
+            Case("Unmute immediately before expiry is preserved", delegate {
+                var now = DateTimeOffset.UtcNow; var a = new FakeAudio(); var n = new FakeNotifications();
+                var e = new QuietEngine(a, n, new MemoryStore(), () => now); e.EnableFor(TimeSpan.FromMinutes(1));
+                a.Devices[1].Muted = false; now = now.AddMinutes(1); e.Refresh();
+                Assert(!a.Devices[1].Muted && !e.State.Active && n.Value == 1, "Expiry overwrote an unobserved unmute");
+            });
+            Case("Manual audio ownership survives restart and later remuting", delegate {
+                var a = new FakeAudio(); var n = new FakeNotifications(); var store = new MemoryStore();
+                var e = new QuietEngine(a, n, store); e.Enable(); a.Devices[0].Muted = false; e.Refresh();
+                a.Devices[0].Muted = true; e = new QuietEngine(a, n, store); e.Refresh(); e.Disable();
+                Assert(a.Devices[0].Muted && n.Value == 1, "User remute was lost after restart");
+            });
+            Case("Unmute while controller is stopped is adopted on restart", delegate {
+                var a = new FakeAudio(); var n = new FakeNotifications(); var store = new MemoryStore();
+                var e = new QuietEngine(a, n, store); e.Enable(); a.Devices[1].Muted = false;
+                e = new QuietEngine(a, n, store); e.Refresh(); e.Disable();
+                Assert(!a.Devices[1].Muted, "Restart re-muted the output");
+            });
+            Case("Manual override survives reconnect and timer replacement; new session resets ownership", delegate {
+                var a = new FakeAudio(); var n = new FakeNotifications(); var e = new QuietEngine(a, n, new MemoryStore());
+                e.Enable(); var speaker = a.Devices[0]; speaker.Muted = false; e.Refresh();
+                a.Devices.Remove(speaker); e.EnableFor(TimeSpan.FromHours(1)); a.Devices.Add(speaker); e.Refresh();
+                Assert(!speaker.Muted, "Reconnect or timer replacement reclaimed output");
+                var usb = new AudioDevice { Id = "usb", Muted = false }; a.Devices.Add(usb); e.Refresh();
+                Assert(usb.Muted, "New output was not muted");
+                e.Disable(); e.Enable(); Assert(speaker.Muted && e.ManualAudioDevices == 0, "New session failed to regain audio control");
+            });
+            Case("Disconnected manual output does not block restoration", delegate {
+                var a = new FakeAudio(); var e = new QuietEngine(a, new FakeNotifications(), new MemoryStore());
+                e.Enable(); var headset = a.Devices[1]; headset.Muted = false; e.Refresh(); a.Devices.Remove(headset); e.Disable();
+                Assert(e.State.Devices.Count == 0, "Manual output wrongly requires restoration");
+            });
+            Case("Failed save of manual choice never causes remuting and is retried", delegate {
+                var a = new FakeAudio(); var n = new FakeNotifications(); var store = new MemoryStore();
+                var e = new QuietEngine(a, n, store); e.Enable(); store.Fail = true; a.Devices[1].Muted = false; e.Refresh();
+                Assert(!a.Devices[1].Muted && e.Error.Length > 0, "Failed save remuted audio or hid error");
+                store.Fail = false; e.Refresh(); e = new QuietEngine(a, n, store); e.Disable();
+                Assert(!a.Devices[1].Muted && e.Error.Length == 0, "Manual choice save was not retried");
+            });
+            Case("Failed initial mute is retried, not mistaken for manual unmute", delegate {
+                var a = new FakeAudio { FailMute = true }; var e = new QuietEngine(a, new FakeNotifications(), new MemoryStore());
+                e.Enable(); Assert(e.Error.Length > 0 && e.ManualAudioDevices == 0, "Mute failure treated as manual");
+                a.FailMute = false; e.Refresh(); Assert(a.Devices[0].Muted && e.Error.Length == 0, "Initial mute not retried");
+            });
+            Case("Older recovery files adopt unmute during upgrade", delegate {
+                var a = new FakeAudio(); var store = new MemoryStore();
+                store.Write(new SavedState { Active = true, Devices = new Dictionary<string, bool> { { "speaker", true }, { "headset", true } } });
+                var e = new QuietEngine(a, new FakeNotifications(), store); e.Refresh(); e.Disable();
+                Assert(!a.Devices[0].Muted, "Legacy session overwrote external unmute");
             });
             if (args.Contains("--native")) Case("Live Windows notifications and every playback endpoint round trip", delegate {
                 using (var a = new AudioControl()) using (var n = new NotificationControl()) {

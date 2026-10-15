@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
@@ -11,7 +12,7 @@ using System.Windows.Forms;
 
 [assembly: System.Reflection.AssemblyTitle("Quiet PC")]
 [assembly: System.Reflection.AssemblyDescription("One-click notifications and playback mute")]
-[assembly: System.Reflection.AssemblyVersion("1.2.1.0")]
+[assembly: System.Reflection.AssemblyVersion("1.2.2.0")]
 
 namespace QuietPC {
     static class Program {
@@ -48,6 +49,7 @@ namespace QuietPC {
                 if (command == "--status") {
                     var state = new StateStore(StatePath).Read();
                     var report = new { Running = IsRunning(), Quiet = state.Active, EndsAtUtc = state.EndsAtUtcTicks.HasValue ? new DateTimeOffset(state.EndsAtUtcTicks.Value, TimeSpan.Zero).ToString("o") : null,
+                        ManualAudioDevices = state.Active && state.AudioOwnership != null ? state.AudioOwnership.Count(pair => !pair.Value) : 0,
                         PendingAudioRestores = state.Active ? 0 : state.Devices.Count, PendingNotificationRestore = !state.Active && state.RestoreNotifications, Settings = Preferences.Load(), Startup = DesktopIntegration.Startup };
                     WriteResult(report, output); return 0;
                 }
@@ -233,6 +235,7 @@ namespace QuietPC {
         }
         CommandReply Reply(string error) {
             return new CommandReply { Ok = string.IsNullOrEmpty(error), Error = error, Quiet = engine.State.Active,
+                ManualAudioDevices = engine.ManualAudioDevices,
                 EndsAtUtc = engine.EndsAt.HasValue ? engine.EndsAt.Value.ToString("o") : null,
                 PendingAudioRestores = engine.State.Active ? 0 : engine.State.Devices.Count,
                 PendingNotificationRestore = !engine.State.Active && engine.State.RestoreNotifications };
@@ -297,6 +300,7 @@ namespace QuietPC {
             bool failed = engine.Error.Length > 0;
             tray.Icon = failed ? warningIcon : engine.State.Active ? onIcon : offIcon;
             string activeLabel = engine.State.MuteAudio && engine.State.RestoreNotifications ? "Quiet ON - notifications and audio muted" : engine.State.MuteAudio ? "Quiet ON - audio muted" : "Quiet ON - notifications suppressed";
+            if (engine.ManualAudioDevices > 0) activeLabel = "Quiet ON - manual audio";
             string label = failed ? "Needs attention" : engine.State.Active ? activeLabel : "Quiet OFF - previous settings restored";
             if (!failed && !engine.State.Active && engine.State.Devices.Count > 0) label = "Quiet OFF - waiting to restore disconnected audio";
             tray.Text = "Quiet PC: " + label; status.Text = label;
@@ -305,7 +309,7 @@ namespace QuietPC {
             if (engine.EndsAt.HasValue) {
                 int remaining = Math.Max(0, (int)Math.Ceiling((engine.EndsAt.Value - DateTimeOffset.UtcNow).TotalMinutes));
                 timerStatus.Text = "Until " + engine.EndsAt.Value.ToLocalTime().ToString("HH:mm") + " - " + remaining + " min left";
-                tray.Text = "Quiet PC: ON - " + remaining + " min left (until " + engine.EndsAt.Value.ToLocalTime().ToString("HH:mm") + ")";
+                tray.Text = "Quiet PC: ON - " + remaining + " min left" + (engine.ManualAudioDevices > 0 ? " - manual audio" : " (until " + engine.EndsAt.Value.ToLocalTime().ToString("HH:mm") + ")");
             } else timerStatus.Text = "Timer...";
             if (lastError != engine.Error) { lastError = engine.Error; Program.Log(failed ? engine.Error : "All settings applied successfully."); }
         }

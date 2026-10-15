@@ -16,6 +16,7 @@ namespace QuietPC {
         public bool Ok { get; set; }
         public string Error { get; set; }
         public bool Quiet { get; set; }
+        public int ManualAudioDevices { get; set; }
         public string EndsAtUtc { get; set; }
         public int PendingAudioRestores { get; set; }
         public bool PendingNotificationRestore { get; set; }

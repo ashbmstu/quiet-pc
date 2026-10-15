@@ -27,7 +27,7 @@ All active playback endpoints are included, even when they are not the default o
 
 If a device disconnects before quiet mode ends, the app remembers its restoration state. It restores that state when the device reconnects. Keep the app running until those devices return. The normal exit and uninstaller refuse to discard pending restoration.
 
-While quiet mode is on, manual unmuting is reversed by the next check. Turn quiet mode off if you want sound again.
+If you unmute an output in Windows, Quiet PC leaves that output under your control for the rest of the session. Notifications and other outputs stay quiet. Later mute changes on that output are also left alone, including when the timer ends. This choice survives restart and reconnect; a new quiet session takes control again. External apps can also change mute state, and are treated the same way.
 
 ## When something looks wrong
 

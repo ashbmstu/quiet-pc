@@ -15,6 +15,8 @@ namespace QuietPC {
         public long Notifications { get; set; }
         public long? EndsAtUtcTicks { get; set; }
         public Dictionary<string, bool> Devices { get; set; }
+        // Missing: initial mute still pending. True: app-controlled. False: user-controlled.
+        public Dictionary<string, bool> AudioOwnership { get; set; }
         public SavedState() { Version = 1; MuteAudio = true; Devices = new Dictionary<string, bool>(); }
     }
     public interface IStateStore { SavedState Read(); void Write(SavedState state); }
@@ -46,6 +48,7 @@ namespace QuietPC {
         readonly INotifications notifications;
         readonly IStateStore store;
         readonly Func<DateTimeOffset> clock;
+        bool ownershipDirty;
         public SavedState State { get; private set; }
         public string Error { get; private set; }
         public bool SuppressNotifications = true;
@@ -56,7 +59,11 @@ namespace QuietPC {
             this.audio = audio; this.notifications = notifications; this.store = store;
             this.clock = clock;
             State = store.Read(); Error = "";
+            // Older sessions enforced mute on every saved output.
+            if (State.AudioOwnership == null) State.AudioOwnership = State.Active
+                ? State.Devices.ToDictionary(pair => pair.Key, pair => true) : new Dictionary<string, bool>();
         }
+        public int ManualAudioDevices { get { return State.Active ? State.AudioOwnership.Count(pair => !pair.Value) : 0; } }
         public void Enable() {
             EnableFor(null);
         }
@@ -73,11 +80,12 @@ namespace QuietPC {
             long prior = SuppressNotifications ? notifications.Get() : 0;
             var snapshot = new SavedState {
                 Active = true, Notifications = prior, RestoreNotifications = SuppressNotifications, MuteAudio = MuteAudio, EndsAtUtcTicks = deadline,
-                Devices = new Dictionary<string, bool>(State.Devices)
+                Devices = new Dictionary<string, bool>(State.Devices), AudioOwnership = new Dictionary<string, bool>()
             };
             foreach (var device in devices) if (!snapshot.Devices.ContainsKey(device.Id)) snapshot.Devices.Add(device.Id, device.Muted);
             store.Write(snapshot); // Durable snapshot BEFORE touching any Windows setting.
             State = snapshot;
+            ownershipDirty = false;
             Refresh();
         }
         void SaveDeadline(long? deadline) {
@@ -109,10 +117,21 @@ namespace QuietPC {
                             State.Devices.Add(device.Id, device.Muted);
                             try { store.Write(State); } catch { State.Devices.Remove(device.Id); throw; }
                         }
+                        bool owned;
+                        if (State.AudioOwnership.TryGetValue(device.Id, out owned)) {
+                            if (owned && !device.Muted) {
+                                // An external unmute wins for this session, even if it is muted again later.
+                                State.AudioOwnership[device.Id] = false; ownershipDirty = true;
+                            }
+                            continue;
+                        }
                         if (!device.Muted) audio.SetMute(device.Id, true);
+                        State.AudioOwnership[device.Id] = true; ownershipDirty = true;
                     } catch (Exception e) { errors.Add("Audio: " + e.Message); }
                 }
             } catch (Exception e) { errors.Add("Audio devices: " + e.Message); }
+            if (ownershipDirty) try { store.Write(State); ownershipDirty = false; }
+                catch (Exception e) { errors.Add("Save audio choices: " + e.Message); }
             Error = string.Join("\r\n", errors);
         }
         void Restore() {
@@ -126,11 +145,18 @@ namespace QuietPC {
             }
             if (State.Devices.Count > 0) {
                 try {
-                    var active = new HashSet<string>(audio.Read().Select(d => d.Id));
+                    var active = audio.Read().ToDictionary(d => d.Id);
                     foreach (var pair in State.Devices.ToArray()) {
-                        if (!active.Contains(pair.Key)) continue; // Restore when reconnected, even after restart.
+                        bool owned;
+                        bool known = State.AudioOwnership.TryGetValue(pair.Key, out owned);
+                        AudioDevice device;
+                        bool connected = active.TryGetValue(pair.Key, out device);
+                        // Also catch an unmute immediately before expiry/off, before the next refresh.
+                        bool manual = known && (!owned || (connected && !device.Muted));
+                        if (!connected && !manual) continue;
                         try {
-                            audio.SetMute(pair.Key, pair.Value);
+                            if (manual) State.AudioOwnership[pair.Key] = false;
+                            else audio.SetMute(pair.Key, pair.Value);
                             State.Devices.Remove(pair.Key);
                             try { store.Write(State); } catch { State.Devices[pair.Key] = pair.Value; throw; }
                         } catch (Exception e) { errors.Add("Restore audio: " + e.Message); }

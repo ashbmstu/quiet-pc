@@ -71,6 +71,7 @@ namespace QuietPC {
         void RefreshStatus() {
             var deadline = engine.EndsAt;
             state.Text = engine.State.Active ? "Quiet on" : "Quiet off";
+            if (engine.ManualAudioDevices > 0) state.Text = "Quiet on \u00b7 manual audio";
             countdown.Text = engine.State.Active ? "\u221e" : "\u2014";
             preview.Text = engine.State.Active ? "No timer" : "";
             if (deadline.HasValue && engine.State.Active) {

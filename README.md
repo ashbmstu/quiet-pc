@@ -12,6 +12,7 @@ Use it for a call, a recording, a focused work session, or any time the PC shoul
 - **30 minutes**, **1 hour**, or a custom duration from **1 minute to 7 days**. Settings restore automatically when the timer ends.
 - Mutes every active Windows playback device and notices newly connected devices.
 - Restores each device's previous mute state. Devices that were already muted stay muted; volume levels are unchanged.
+- Manual unmute takes priority: that output stays under your control for the rest of the session, including when the timer ends.
 - Keeps the tray icon visible and can start at sign-in.
 - Saves recovery state before changing Windows settings. A restart does not lose the original settings or reset a timer.
 - Offers a local command interface with JSON replies for scripts and assistants.
