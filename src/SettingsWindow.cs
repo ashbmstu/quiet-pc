@@ -17,7 +17,7 @@ namespace QuietPC {
             BackColor = SystemInformation.HighContrast ? SystemColors.Window : Brand.Canvas;
             ForeColor = SystemInformation.HighContrast ? SystemColors.WindowText : Brand.Ink;
             AutoScaleDimensions = new SizeF(96, 96); AutoScaleMode = AutoScaleMode.Dpi;
-            ClientSize = new Size(400, 412);
+            ClientSize = new Size(320, 270);
             AutoSize = true; AutoSizeMode = AutoSizeMode.GrowAndShrink;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false; MinimizeBox = false;
@@ -26,20 +26,16 @@ namespace QuietPC {
             tips.ShowAlways = true;
             var layout = new TableLayoutPanel {
                 Dock = DockStyle.Fill, AutoSize = true, ColumnCount = 1,
-                Padding = new Padding(24, 20, 24, 18), BackColor = BackColor
+                Padding = new Padding(16), BackColor = BackColor
             };
-            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 352));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 288));
             Controls.Add(layout);
-            AddRow(layout, new Label {
-                Text = "Settings", AutoSize = true, Font = new Font("Segoe UI", 18, FontStyle.Regular),
-                Margin = new Padding(0, 0, 0, 20)
-            });
             notifications = Check("Hide &notifications", value.Notifications,
                 "Suppress Windows notifications during quiet mode. Applies next time quiet mode starts.");
             audio = Check("Mute &audio", value.Audio,
                 "Mute all playback devices during quiet mode. Volume levels and microphones stay unchanged. Applies next time quiet mode starts.");
             AddRow(layout, notifications); AddRow(layout, audio);
-            AddRow(layout, new Label { Height = 10, AutoSize = false, Margin = new Padding(0) });
+            AddRow(layout, new Label { Height = 6, AutoSize = false, Margin = new Padding(0) });
             visible = Check("Show &tray icon", value.AlwaysVisible,
                 "Keep the Quiet PC icon visible outside the Windows tray overflow.");
             startup = Check("Start with &Windows", DesktopIntegration.Startup,
@@ -49,10 +45,10 @@ namespace QuietPC {
             AddRow(layout, visible); AddRow(layout, startup); AddRow(layout, resume);
             var shortcutRow = new TableLayoutPanel {
                 AutoSize = true, Dock = DockStyle.Top, ColumnCount = 2, RowCount = 1,
-                MinimumSize = new Size(0, 32), Margin = new Padding(0, 12, 0, 0)
+                MinimumSize = new Size(0, 28), Margin = new Padding(0, 6, 0, 0)
             };
-            shortcutRow.RowStyles.Add(new RowStyle(SizeType.Absolute, 32));
-            shortcutRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 102));
+            shortcutRow.RowStyles.Add(new RowStyle(SizeType.Absolute, 28));
+            shortcutRow.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 74));
             shortcutRow.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             shortcutRow.Controls.Add(new Label {
                 Text = "&Shortcut", AutoSize = true, Anchor = AnchorStyles.Left,
@@ -67,14 +63,14 @@ namespace QuietPC {
             Describe(shortcut, "Toggle quiet mode from the keyboard.");
             shortcutRow.Controls.Add(shortcut, 1, 0); AddRow(layout, shortcutRow);
             feedback = new Label {
-                AutoSize = true, MinimumSize = new Size(352, 24), MaximumSize = new Size(352, 0),
+                AutoSize = true, Visible = false, MaximumSize = new Size(288, 0),
                 ForeColor = SystemInformation.HighContrast ? SystemColors.WindowText : Brand.Muted,
-                Margin = new Padding(0, 8, 0, 0), AccessibleName = "Settings status"
+                Margin = new Padding(0, 4, 0, 0), AccessibleName = "Settings status"
             };
             AddRow(layout, feedback);
             var buttons = new FlowLayoutPanel {
                 AutoSize = true, Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft,
-                WrapContents = false, Margin = new Padding(0)
+                WrapContents = false, Margin = new Padding(0, 8, 0, 0)
             };
             var save = new NeoButton { Text = "&Save", Margin = new Padding(8, 0, 0, 0) };
             Brand.StylePrimary(save); save.Click += Save; buttons.Controls.Add(save); AcceptButton = save;
@@ -90,7 +86,7 @@ namespace QuietPC {
         CheckBox Check(string text, bool value, string description) {
             var control = new CheckBox {
                 Text = text, AutoSize = true, Checked = value,
-                Margin = new Padding(0, 0, 0, 10), UseVisualStyleBackColor = true
+                Margin = new Padding(0, 0, 0, 6), UseVisualStyleBackColor = true
             };
             Describe(control, description); return control;
         }
@@ -98,6 +94,7 @@ namespace QuietPC {
             tips.SetToolTip(control, description); control.AccessibleDescription = description;
         }
         void Save(object sender, EventArgs e) {
+            feedback.Visible = true;
             if (!notifications.Checked && !audio.Checked) {
                 feedback.ForeColor = SystemInformation.HighContrast ? SystemColors.WindowText : Brand.Warning;
                 feedback.Text = "Choose notifications or audio.";

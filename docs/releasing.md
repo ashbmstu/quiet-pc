@@ -1,10 +1,10 @@
 # Releasing
 
-## First public repository
+## Repository
 
-Create an empty public repository named `quiet-pc`. Do not generate another README, licence or gitignore; these files are already in the local project. Add its URL as the local `origin` only after the owner provides it. Nothing in this project requires publishing an installed executable or personal runtime state.
+Source: [ashbmstu/quiet-pc](https://github.com/ashbmstu/quiet-pc). Keep installed executables and personal runtime state out of Git; release archives are built separately.
 
-Before the first push:
+Before pushing:
 
 - Review the files Git will track. There should be no `build`, `dist`, `.local`, settings, recovery state or logs.
 - Confirm the MIT licence and the intended commit author.

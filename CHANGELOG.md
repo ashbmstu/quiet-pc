@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 — 2026-10-15
+
+- Tightened settings and timer spacing, removed the duplicate settings heading, and collapsed empty save feedback.
+
 ## 1.2.0 — 2026-10-15
 
 - Added 30-minute, 1-hour and custom quiet timers with automatic restoration.
